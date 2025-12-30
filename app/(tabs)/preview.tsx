@@ -1,13 +1,20 @@
 import { View, Text, Pressable, Platform, StyleSheet, Linking } from 'react-native';
 import { useEffect } from 'react';
 import { router } from 'expo-router';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { FontAwesome } from '@expo/vector-icons';
 
 import { useCreationStore } from '@/stores/creationStore';
 
 export default function PreviewScreen() {
   const { videoUrl, reset } = useCreationStore();
+
+  const player = useVideoPlayer(videoUrl || '', (player) => {
+    player.loop = true;
+    if (videoUrl) {
+      player.play();
+    }
+  });
 
   useEffect(() => {
     if (!videoUrl) {
@@ -50,13 +57,12 @@ export default function PreviewScreen() {
       <View style={styles.videoSection}>
         <Text style={styles.title}>Your Talking Photo</Text>
         <View style={styles.videoWrapper}>
-          <Video
-            source={{ uri: videoUrl }}
+          <VideoView
             style={styles.video}
-            resizeMode={ResizeMode.CONTAIN}
-            shouldPlay
-            isLooping
-            useNativeControls
+            player={player}
+            allowsFullscreen
+            allowsPictureInPicture
+            nativeControls
           />
         </View>
       </View>
