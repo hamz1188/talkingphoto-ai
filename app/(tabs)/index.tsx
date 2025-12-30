@@ -8,6 +8,7 @@ import { VoiceSelector } from '@/components/VoiceSelector';
 import { ScriptInput } from '@/components/ScriptInput';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { useCreationStore } from '@/stores/creationStore';
+import { useGalleryStore } from '@/stores/galleryStore';
 import { generateScript, generateVoice, generateVideo } from '@/services/api';
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
 
@@ -28,7 +29,11 @@ export default function CreateScreen() {
     reset,
   } = useCreationStore();
 
+  const { addVideo } = useGalleryStore();
+
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
 
   const handleGenerateScript = async () => {
     if (!imageBase64) {
@@ -70,18 +75,36 @@ export default function CreateScreen() {
       voiceId: selectedVoiceId,
     });
 
+    setProgress(0);
+    setProgressMessage('');
+
     try {
       // Step 1: Generate voice
       setStatus('generating-voice');
+      setProgressMessage('Generating voice audio...');
       const audioUrl = await generateVoice(script, selectedVoiceId);
       setAudioUrl(audioUrl);
 
-      // Step 2: Generate video
+      // Step 2: Generate video with progress updates
       setStatus('generating-video');
-      // For Replicate, we need to upload the image first or use a data URL
       const imageDataUrl = `data:image/jpeg;base64,${imageBase64}`;
-      const videoUrl = await generateVideo(imageDataUrl, audioUrl);
+
+      const videoUrl = await generateVideo(
+        imageDataUrl,
+        audioUrl,
+        (progressValue, message) => {
+          setProgress(progressValue);
+          setProgressMessage(message);
+        }
+      );
       setVideoUrl(videoUrl);
+
+      // Save to gallery
+      addVideo({
+        videoUrl,
+        thumbnailUri: imageUri,
+        script,
+      });
 
       setStatus('complete');
       analytics.track(AnalyticsEvents.VIDEO_GENERATION_COMPLETED, {
@@ -100,10 +123,12 @@ export default function CreateScreen() {
       });
       Alert.alert('Error', message);
       setStatus('idle');
+      setProgress(0);
     }
   };
 
   const getLoadingMessage = () => {
+    if (progressMessage) return progressMessage;
     switch (status) {
       case 'generating-voice':
         return 'Generating voice audio...';
@@ -168,7 +193,11 @@ export default function CreateScreen() {
         )}
       </ScrollView>
 
-      <LoadingOverlay visible={isProcessing} message={getLoadingMessage()} />
+      <LoadingOverlay
+        visible={isProcessing}
+        message={getLoadingMessage()}
+        progress={status === 'generating-video' ? progress : undefined}
+      />
     </View>
   );
 }

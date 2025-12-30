@@ -126,6 +126,7 @@ export default function OnboardingScreen() {
         onViewableItemsChanged={handleViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         bounces={false}
+        style={styles.flatList}
       />
 
       {/* Pagination dots */}
@@ -158,14 +159,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  flatList: {
+    flex: 1,
+  },
   header: {
     height: 50,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     paddingHorizontal: 20,
+    zIndex: 10,
   },
   skipButton: {
     padding: 10,
+    cursor: 'pointer' as any,
   },
   skipText: {
     fontSize: 16,
@@ -191,12 +197,14 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 20,
+    zIndex: 10,
   },
   nextButton: {
     backgroundColor: '#8B5CF6',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+    cursor: 'pointer' as any,
   },
   nextButtonText: {
     color: '#FFFFFF',

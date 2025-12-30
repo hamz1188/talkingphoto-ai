@@ -1,47 +1,53 @@
 import axios from 'axios';
 
 const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
+const REPLICATE_FILES_URL = 'https://api.replicate.com/v1/files';
 
 interface ReplicatePrediction {
   id: string;
   status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled';
   output?: string | string[];
   error?: string;
+  logs?: string;
 }
 
-async function waitForPrediction(
-  predictionId: string,
+interface ReplicateFile {
+  id: string;
+  urls: {
+    get: string;
+  };
+}
+
+// Upload a data URL to Replicate and get an HTTP URL back
+async function uploadToReplicate(
+  dataUrl: string,
+  filename: string,
   apiToken: string
-): Promise<ReplicatePrediction> {
-  const maxAttempts = 60; // Max 5 minutes (60 * 5 seconds)
-  let attempts = 0;
-
-  while (attempts < maxAttempts) {
-    const response = await axios.get<ReplicatePrediction>(
-      `${REPLICATE_API_URL}/${predictionId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiToken}`,
-        },
-      }
-    );
-
-    const prediction = response.data;
-
-    if (prediction.status === 'succeeded') {
-      return prediction;
-    }
-
-    if (prediction.status === 'failed' || prediction.status === 'canceled') {
-      throw new Error(prediction.error || 'Prediction failed');
-    }
-
-    // Wait 5 seconds before polling again
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    attempts++;
+): Promise<string> {
+  const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!matches) {
+    throw new Error('Invalid data URL format');
   }
 
-  throw new Error('Prediction timed out');
+  const mimeType = matches[1];
+  const base64Data = matches[2];
+  const buffer = Buffer.from(base64Data, 'base64');
+
+  const FormData = (await import('form-data')).default;
+  const form = new FormData();
+  form.append('content', buffer, {
+    filename,
+    contentType: mimeType,
+  });
+
+  const response = await axios.post<ReplicateFile>(REPLICATE_FILES_URL, form, {
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+      ...form.getHeaders(),
+    },
+  });
+
+  return response.data.urls.get;
 }
 
 export async function POST(request: Request) {
@@ -63,18 +69,35 @@ export async function POST(request: Request) {
       );
     }
 
-    // Start the prediction using SadTalker model
+    console.log('Starting video generation...');
+
+    // Upload files to Replicate if they are data URLs
+    let imageHttpUrl = imageUrl;
+    let audioHttpUrl = audioUrl;
+
+    if (imageUrl.startsWith('data:')) {
+      console.log('Uploading image to Replicate...');
+      imageHttpUrl = await uploadToReplicate(imageUrl, 'image.jpg', apiToken);
+      console.log('Image uploaded:', imageHttpUrl);
+    }
+
+    if (audioUrl.startsWith('data:')) {
+      console.log('Uploading audio to Replicate...');
+      audioHttpUrl = await uploadToReplicate(audioUrl, 'audio.mp3', apiToken);
+      console.log('Audio uploaded:', audioHttpUrl);
+    }
+
+    // Use Wan-2.2-S2V for audio-driven video generation from image
     const createResponse = await axios.post<ReplicatePrediction>(
       REPLICATE_API_URL,
       {
-        // SadTalker model for lip-sync animation
-        version:
-          'cjwbw/sadtalker:3aa3dac9353cc4d6bd62a8f95957bd844003b401ca4e4a9b33baa574c549d376',
+        version: '09607e6e761d2f015b0d740f938ec59199f54aa623384465a5054b230405acf4',
         input: {
-          source_image: imageUrl,
-          driven_audio: audioUrl,
-          enhancer: 'gfpgan', // Face enhancement
-          preprocess: 'crop', // Crop face from image
+          image: imageHttpUrl,
+          audio: audioHttpUrl,
+          prompt: 'A person talking naturally with lip sync to the audio',
+          num_frames_per_chunk: 81,
+          interpolate: true,
         },
       },
       {
@@ -86,23 +109,14 @@ export async function POST(request: Request) {
     );
 
     const predictionId = createResponse.data.id;
+    console.log('Prediction started:', predictionId);
 
-    // Poll for completion
-    const result = await waitForPrediction(predictionId, apiToken);
-
-    // Get the video URL from output
-    const videoUrl = Array.isArray(result.output)
-      ? result.output[0]
-      : result.output;
-
-    if (!videoUrl) {
-      return Response.json(
-        { error: 'No video URL in response' },
-        { status: 500 }
-      );
-    }
-
-    return Response.json({ videoUrl });
+    // Return prediction ID immediately - client will poll for status
+    return Response.json({
+      predictionId,
+      status: 'starting',
+      message: 'Video generation started'
+    });
   } catch (error) {
     console.error('Video generation error:', error);
     const message =

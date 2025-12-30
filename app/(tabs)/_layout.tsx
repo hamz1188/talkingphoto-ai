@@ -31,6 +31,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="gallery"
+        options={{
+          title: 'Gallery',
+          headerTitle: 'My Videos',
+          tabBarIcon: ({ color }) => <TabBarIcon name="film" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="preview"
         options={{
           title: 'Preview',

@@ -42,3 +42,23 @@ export interface CreationActions {
   setError: (error: string | null) => void;
   reset: () => void;
 }
+
+// Gallery types
+export interface GalleryVideo {
+  id: string;
+  videoUrl: string;
+  thumbnailUri: string | null;
+  script: string;
+  createdAt: number;
+}
+
+export interface GalleryState {
+  videos: GalleryVideo[];
+}
+
+export interface GalleryActions {
+  addVideo: (video: Omit<GalleryVideo, 'id' | 'createdAt'>) => void;
+  removeVideo: (id: string) => void;
+  clearGallery: () => void;
+  loadGallery: () => Promise<void>;
+}
