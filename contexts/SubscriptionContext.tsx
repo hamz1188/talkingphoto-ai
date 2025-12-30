@@ -10,7 +10,7 @@ import {
   checkPremiumStatus,
 } from '@/lib/purchases';
 
-const FREE_VIDEO_LIMIT = 2;
+const FREE_VIDEO_LIMIT = 1;
 const VIDEO_COUNT_KEY = '@talkingphoto_video_count';
 
 interface SubscriptionContextType {

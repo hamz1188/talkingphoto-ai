@@ -293,6 +293,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: Spacing.lg,
+    alignItems: 'center',
   },
   heroSection: {
     alignItems: 'center',
@@ -313,10 +314,12 @@ const styles = StyleSheet.create({
   },
   section: {
     width: '100%',
+    alignSelf: 'stretch',
     marginTop: Spacing.lg,
   },
   createButton: {
     width: '100%',
+    alignSelf: 'stretch',
     marginTop: Spacing.xl,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',

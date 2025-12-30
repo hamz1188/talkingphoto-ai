@@ -1,9 +1,11 @@
-import { View, Text, Pressable, Image, Platform, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Image, Platform, StyleSheet, useWindowDimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
+
+const HORIZONTAL_PADDING = Spacing.lg * 2; // Buffer on each side
 
 interface ImagePickerButtonProps {
   imageUri: string | null;
@@ -14,6 +16,9 @@ export function ImagePickerButton({
   imageUri,
   onImageSelected,
 }: ImagePickerButtonProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const imageSize = screenWidth - HORIZONTAL_PADDING;
+
   const pickImage = async () => {
     try {
       if (Platform.OS !== 'web') {
@@ -49,10 +54,10 @@ export function ImagePickerButton({
   if (imageUri) {
     return (
       <Pressable onPress={pickImage} style={styles.container}>
-        <View style={styles.imageContainer}>
+        <View style={[styles.imageContainer, { width: imageSize, height: imageSize }]}>
           <Image
             source={{ uri: imageUri }}
-            style={styles.image}
+            style={[styles.image, { width: imageSize, height: imageSize }]}
             resizeMode="cover"
           />
           {/* Glow effect behind image */}
@@ -69,6 +74,7 @@ export function ImagePickerButton({
   return (
     <Pressable onPress={pickImage} style={({ pressed }) => [
       styles.placeholder,
+      { width: imageSize, height: imageSize },
       pressed && styles.placeholderPressed,
     ]}>
       <View style={styles.placeholderInner}>
@@ -92,8 +98,6 @@ const styles = StyleSheet.create({
     ...Shadows.lg,
   },
   image: {
-    width: 280,
-    height: 280,
     borderRadius: BorderRadius.xl,
     borderWidth: 2,
     borderColor: Colors.border.default,
@@ -125,8 +129,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.size.sm,
   },
   placeholder: {
-    width: 280,
-    height: 280,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
   },
