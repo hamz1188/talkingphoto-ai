@@ -1,19 +1,26 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+/**
+ * Legacy Colors export for compatibility with existing components.
+ * New code should import from Theme.ts directly.
+ */
+
+import { Colors as ThemeColors, TabBarTheme } from './Theme';
+
+const tintColorLight = ThemeColors.primary.default;
+const tintColorDark = ThemeColors.primary.default;
 
 export default {
   light: {
-    text: '#000',
-    background: '#fff',
+    text: ThemeColors.text.primary,
+    background: ThemeColors.background.primary,
     tint: tintColorLight,
-    tabIconDefault: '#ccc',
+    tabIconDefault: ThemeColors.text.muted,
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#fff',
-    background: '#000',
+    text: ThemeColors.text.primary,
+    background: ThemeColors.background.primary,
     tint: tintColorDark,
-    tabIconDefault: '#ccc',
+    tabIconDefault: ThemeColors.text.muted,
     tabIconSelected: tintColorDark,
   },
 };

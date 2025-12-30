@@ -1,6 +1,9 @@
 import { View, Text, Pressable, Image, Platform, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 
 interface ImagePickerButtonProps {
   imageUri: string | null;
@@ -13,7 +16,6 @@ export function ImagePickerButton({
 }: ImagePickerButtonProps) {
   const pickImage = async () => {
     try {
-      // On web, permissions are handled by the browser
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
@@ -27,16 +29,14 @@ export function ImagePickerButton({
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
-        base64: true, // Request base64 directly
+        base64: true,
       });
 
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
-        // Use the base64 from the result if available
         if (asset.base64) {
           onImageSelected(asset.uri, asset.base64);
         } else {
-          // Fallback: just use URI (base64 should be available on most platforms)
           console.warn('Base64 not available, using URI only');
           onImageSelected(asset.uri, '');
         }
@@ -49,21 +49,35 @@ export function ImagePickerButton({
   if (imageUri) {
     return (
       <Pressable onPress={pickImage} style={styles.container}>
-        <Image
-          source={{ uri: imageUri }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-        <Text style={styles.changeText}>Tap to change photo</Text>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          {/* Glow effect behind image */}
+          <View style={styles.imageGlow} />
+        </View>
+        <View style={styles.changeButton}>
+          <FontAwesome name="camera" size={14} color={Colors.text.primary} />
+          <Text style={styles.changeText}>Change photo</Text>
+        </View>
       </Pressable>
     );
   }
 
   return (
-    <Pressable onPress={pickImage} style={styles.placeholder}>
-      <FontAwesome name="camera" size={48} color="#9CA3AF" />
-      <Text style={styles.addText}>Add Photo</Text>
-      <Text style={styles.hintText}>Tap to select a photo</Text>
+    <Pressable onPress={pickImage} style={({ pressed }) => [
+      styles.placeholder,
+      pressed && styles.placeholderPressed,
+    ]}>
+      <View style={styles.placeholderInner}>
+        <View style={styles.iconContainer}>
+          <FontAwesome name="camera" size={32} color={Colors.primary.default} />
+        </View>
+        <Text style={styles.addText}>Add Photo</Text>
+        <Text style={styles.hintText}>Tap to select from gallery</Text>
+      </View>
     </Pressable>
   );
 }
@@ -72,37 +86,80 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
   },
+  imageContainer: {
+    position: 'relative',
+    borderRadius: BorderRadius.xl,
+    ...Shadows.lg,
+  },
   image: {
-    width: 256,
-    height: 256,
-    borderRadius: 16,
+    width: 280,
+    height: 280,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    borderColor: Colors.border.default,
+  },
+  imageGlow: {
+    position: 'absolute',
+    top: -10,
+    left: -10,
+    right: -10,
+    bottom: -10,
+    borderRadius: BorderRadius.xl + 10,
+    backgroundColor: Colors.primary.glow,
+    zIndex: -1,
+  },
+  changeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.surface.default,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
   },
   changeText: {
-    color: '#6B7280',
-    marginTop: 8,
-    fontSize: 14,
+    color: Colors.text.secondary,
+    marginLeft: Spacing.xs,
+    fontSize: Typography.size.sm,
   },
   placeholder: {
-    width: 256,
-    height: 256,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 16,
+    width: 280,
+    height: 280,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  placeholderPressed: {
+    transform: [{ scale: 0.98 }],
+  },
+  placeholderInner: {
+    flex: 1,
+    backgroundColor: Colors.surface.default,
+    borderRadius: BorderRadius.xl,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#D1D5DB',
-    cursor: 'pointer',
+    borderColor: Colors.border.default,
+  },
+  iconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primary.subtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
   },
   addText: {
-    color: '#6B7280',
-    marginTop: 16,
-    fontSize: 18,
-    fontWeight: '500',
+    color: Colors.text.primary,
+    fontSize: Typography.size.lg,
+    fontWeight: Typography.weight.semibold,
   },
   hintText: {
-    color: '#9CA3AF',
-    marginTop: 4,
-    fontSize: 14,
+    color: Colors.text.muted,
+    marginTop: Spacing.xs,
+    fontSize: Typography.size.sm,
   },
 });

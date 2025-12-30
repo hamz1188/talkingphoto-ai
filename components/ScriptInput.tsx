@@ -1,5 +1,8 @@
 import { View, Text, TextInput, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Theme';
 
 interface ScriptInputProps {
   script: string;
@@ -23,32 +26,60 @@ export function ScriptInput({
         <Pressable
           onPress={onGenerateScript}
           disabled={disabled || isGenerating}
-          style={[
+          style={({ pressed }) => [
             styles.generateButton,
             (disabled || isGenerating) && styles.generateButtonDisabled,
+            pressed && styles.generateButtonPressed,
           ]}
         >
-          {isGenerating ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <FontAwesome name="magic" size={14} color="white" />
-          )}
-          <Text style={styles.generateButtonText}>
-            {isGenerating ? 'Generating...' : 'AI Generate'}
-          </Text>
+          <LinearGradient
+            colors={
+              disabled || isGenerating
+                ? [Colors.surface.default, Colors.surface.default]
+                : [Colors.accent.default, Colors.accent.dark]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.generateButtonGradient}
+          >
+            {isGenerating ? (
+              <ActivityIndicator size="small" color={Colors.text.primary} />
+            ) : (
+              <FontAwesome name="magic" size={14} color={Colors.text.primary} />
+            )}
+            <Text style={styles.generateButtonText}>
+              {isGenerating ? 'Writing...' : 'AI Write'}
+            </Text>
+          </LinearGradient>
         </Pressable>
       </View>
-      <TextInput
-        value={script}
-        onChangeText={onScriptChange}
-        placeholder="Type what you want the photo to say..."
-        placeholderTextColor="#9CA3AF"
-        multiline
-        numberOfLines={4}
-        style={styles.textInput}
-        textAlignVertical="top"
-      />
-      <Text style={styles.charCount}>{script.length}/500 characters</Text>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={script}
+          onChangeText={onScriptChange}
+          placeholder="What should your photo say?"
+          placeholderTextColor={Colors.text.muted}
+          multiline
+          numberOfLines={4}
+          style={styles.textInput}
+          textAlignVertical="top"
+          maxLength={500}
+        />
+        {!script && !isGenerating && (
+          <View style={styles.hintContainer}>
+            <FontAwesome name="lightbulb-o" size={14} color={Colors.text.muted} />
+            <Text style={styles.hintText}>
+              Tip: Use AI Write to generate a script based on your photo
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <Text style={styles.charCount}>
+        {script.length}
+        <Text style={styles.charCountMax}>/500</Text>
+      </Text>
     </View>
   );
 }
@@ -61,43 +92,68 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   label: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: Typography.size.lg,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.text.primary,
   },
   generateButton: {
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+  },
+  generateButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#3B82F6',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   generateButtonDisabled: {
-    backgroundColor: '#E5E7EB',
+    opacity: 0.5,
+  },
+  generateButtonPressed: {
+    transform: [{ scale: 0.95 }],
   },
   generateButtonText: {
-    color: 'white',
-    fontSize: 14,
-    marginLeft: 8,
-    fontWeight: '500',
+    color: Colors.text.primary,
+    fontSize: Typography.size.sm,
+    marginLeft: Spacing.sm,
+    fontWeight: Typography.weight.medium,
+  },
+  inputContainer: {
+    backgroundColor: Colors.surface.default,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    overflow: 'hidden',
   },
   textInput: {
     width: '100%',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    padding: 16,
-    color: '#111827',
-    fontSize: 16,
-    minHeight: 100,
+    padding: Spacing.md,
+    color: Colors.text.primary,
+    fontSize: Typography.size.md,
+    minHeight: 120,
+  },
+  hintContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  hintText: {
+    color: Colors.text.muted,
+    fontSize: Typography.size.xs,
+    flex: 1,
   },
   charCount: {
-    color: '#9CA3AF',
-    fontSize: 12,
-    marginTop: 4,
+    color: Colors.text.secondary,
+    fontSize: Typography.size.xs,
+    marginTop: Spacing.xs,
     textAlign: 'right',
+  },
+  charCountMax: {
+    color: Colors.text.muted,
   },
 });

@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 
+import { Colors, Spacing, Typography } from '@/constants/Theme';
+
 const { width } = Dimensions.get('window');
 
 interface OnboardingSlideProps {
@@ -14,12 +16,20 @@ export default function OnboardingSlide({
   icon,
   title,
   description,
-  iconColor = '#8B5CF6',
+  iconColor = Colors.primary.default,
 }: OnboardingSlideProps) {
+  // Create a subtle glow color from the icon color
+  const glowColor = `${iconColor}30`;
+  const subtleColor = `${iconColor}15`;
+
   return (
     <View style={styles.slide}>
-      <View style={[styles.iconContainer, { backgroundColor: `${iconColor}20` }]}>
-        <FontAwesome name={icon} size={64} color={iconColor} />
+      {/* Background glow */}
+      <View style={[styles.glowOuter, { backgroundColor: subtleColor }]} />
+      <View style={[styles.glowInner, { backgroundColor: glowColor }]} />
+
+      <View style={[styles.iconContainer, { borderColor: iconColor }]}>
+        <FontAwesome name={icon} size={56} color={iconColor} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
@@ -33,27 +43,45 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: Spacing.xxl,
+    position: 'relative',
+  },
+  glowOuter: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    top: '20%',
+  },
+  glowInner: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    top: '25%',
   },
   iconContainer: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 40,
+    marginBottom: Spacing.xl,
+    backgroundColor: Colors.surface.default,
+    borderWidth: 2,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontSize: Typography.size.xxl,
+    fontWeight: Typography.weight.bold,
+    color: Colors.text.primary,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: Spacing.md,
   },
   description: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: Typography.size.md,
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
+    maxWidth: 300,
   },
 });

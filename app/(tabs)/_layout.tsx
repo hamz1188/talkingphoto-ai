@@ -1,25 +1,35 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
+import { View, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { Colors, TabBarTheme, HeaderTheme, BorderRadius } from '@/constants/Theme';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
+  focused: boolean;
 }) {
-  return <FontAwesome size={24} style={{ marginBottom: -3 }} {...props} />;
+  return (
+    <View style={[styles.iconContainer, props.focused && styles.iconContainerActive]}>
+      <FontAwesome size={22} {...props} />
+    </View>
+  );
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: TabBarTheme.activeTintColor,
+        tabBarInactiveTintColor: TabBarTheme.inactiveTintColor,
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabBarLabel,
         headerShown: true,
+        headerStyle: styles.header,
+        headerTitleStyle: styles.headerTitle,
+        headerTintColor: HeaderTheme.tintColor,
       }}
     >
       <Tabs.Screen
@@ -27,7 +37,9 @@ export default function TabLayout() {
         options={{
           title: 'Create',
           headerTitle: 'TalkingPhoto AI',
-          tabBarIcon: ({ color }) => <TabBarIcon name="plus-circle" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="magic" color={color} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -35,7 +47,9 @@ export default function TabLayout() {
         options={{
           title: 'Gallery',
           headerTitle: 'My Videos',
-          tabBarIcon: ({ color }) => <TabBarIcon name="film" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="th" color={color} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -43,11 +57,50 @@ export default function TabLayout() {
         options={{
           title: 'Preview',
           headerTitle: 'Preview',
-          tabBarIcon: ({ color }) => <TabBarIcon name="play-circle" color={color} />,
-          // Hide from tab bar, accessed via navigation
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="play-circle" color={color} focused={focused} />
+          ),
           href: null,
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: Colors.background.primary,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.default,
+    paddingTop: 8,
+    paddingBottom: 8,
+    height: 80,
+  },
+  tabBarLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  header: {
+    backgroundColor: Colors.background.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+    shadowColor: 'transparent',
+    elevation: 0,
+  },
+  headerTitle: {
+    color: Colors.text.primary,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  iconContainer: {
+    width: 40,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BorderRadius.sm,
+  },
+  iconContainerActive: {
+    backgroundColor: Colors.primary.subtle,
+  },
+});

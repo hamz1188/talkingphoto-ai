@@ -10,8 +10,10 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 
 export default function VideoPlayerScreen() {
   const { videoUrl, script } = useLocalSearchParams<{
@@ -66,8 +68,15 @@ export default function VideoPlayerScreen() {
   if (!videoUrl) {
     return (
       <View style={styles.centerContainer}>
+        <FontAwesome name="exclamation-circle" size={48} color={Colors.text.muted} />
         <Text style={styles.errorText}>Video not found</Text>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.backButton,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={() => router.back()}
+        >
           <Text style={styles.backButtonText}>Go Back</Text>
         </Pressable>
       </View>
@@ -78,42 +87,63 @@ export default function VideoPlayerScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Pressable style={styles.closeButton} onPress={() => router.back()}>
-          <FontAwesome name="chevron-left" size={20} color="#374151" />
+          <FontAwesome name="chevron-left" size={18} color={Colors.text.secondary} />
         </Pressable>
         <Text style={styles.headerTitle}>Video</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.videoSection}>
-        <View style={styles.videoWrapper}>
-          <VideoView
-            style={styles.video}
-            player={player}
-            allowsFullscreen
-            allowsPictureInPicture
-            nativeControls
-          />
+        <View style={styles.videoContainer}>
+          <View style={styles.videoGlow} />
+          <View style={styles.videoWrapper}>
+            <VideoView
+              style={styles.video}
+              player={player}
+              allowsFullscreen
+              allowsPictureInPicture
+              nativeControls
+            />
+          </View>
         </View>
       </View>
 
       {script && (
         <View style={styles.scriptSection}>
           <Text style={styles.scriptLabel}>Script</Text>
-          <Text style={styles.scriptText}>{script}</Text>
+          <View style={styles.scriptContainer}>
+            <Text style={styles.scriptText}>{script}</Text>
+          </View>
         </View>
       )}
 
       <View style={styles.actionsSection}>
-        <Pressable style={styles.actionButton} onPress={handleShare}>
-          <FontAwesome name="share" size={18} color="#3B82F6" />
-          <Text style={styles.actionButtonText}>Share</Text>
+        <Pressable
+          style={({ pressed }) => [
+            styles.shareButton,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={handleShare}
+        >
+          <LinearGradient
+            colors={[Colors.accent.default, Colors.accent.dark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.shareButtonGradient}
+          >
+            <FontAwesome name="share-alt" size={16} color={Colors.text.primary} />
+            <Text style={styles.shareButtonText}>Share</Text>
+          </LinearGradient>
         </Pressable>
 
         <Pressable
-          style={[styles.actionButton, styles.downloadButton]}
+          style={({ pressed }) => [
+            styles.downloadButton,
+            pressed && styles.buttonPressed,
+          ]}
           onPress={handleDownload}
         >
-          <FontAwesome name="download" size={18} color="white" />
+          <FontAwesome name="download" size={16} color={Colors.success.default} />
           <Text style={styles.downloadButtonText}>Download</Text>
         </Pressable>
       </View>
@@ -124,110 +154,151 @@ export default function VideoPlayerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorText: {
-    color: '#6B7280',
-    fontSize: 16,
+    color: Colors.text.muted,
+    fontSize: Typography.size.md,
+    marginTop: Spacing.md,
   },
   backButton: {
-    marginTop: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.surface.default,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
   },
   backButtonText: {
-    color: '#3B82F6',
-    fontWeight: '600',
+    color: Colors.primary.light,
+    fontWeight: Typography.weight.semibold,
+  },
+  buttonPressed: {
+    transform: [{ scale: 0.97 }],
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.border.default,
   },
   closeButton: {
-    padding: 8,
+    padding: Spacing.sm,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: Typography.size.lg,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.text.primary,
   },
   headerSpacer: {
     width: 36,
   },
   videoSection: {
     alignItems: 'center',
-    padding: 24,
+    padding: Spacing.lg,
+  },
+  videoContainer: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 350,
+  },
+  videoGlow: {
+    position: 'absolute',
+    top: -12,
+    left: -12,
+    right: -12,
+    bottom: -12,
+    borderRadius: BorderRadius.xl + 12,
+    backgroundColor: Colors.primary.glow,
   },
   videoWrapper: {
     width: '100%',
-    maxWidth: 400,
     aspectRatio: 1,
-    borderRadius: 16,
+    borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    backgroundColor: '#000000',
+    backgroundColor: Colors.background.tertiary,
+    borderWidth: 2,
+    borderColor: Colors.border.default,
   },
   video: {
     width: '100%',
     height: '100%',
   },
   scriptSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   scriptLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 8,
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.text.muted,
+    marginBottom: Spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  scriptContainer: {
+    backgroundColor: Colors.surface.default,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
   },
   scriptText: {
-    fontSize: 15,
-    color: '#374151',
+    fontSize: Typography.size.md,
+    color: Colors.text.secondary,
     lineHeight: 22,
   },
   actionsSection: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 12,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
     marginTop: 'auto',
-    marginBottom: 24,
+    marginBottom: Spacing.xl,
   },
-  actionButton: {
+  shareButton: {
+    flex: 1,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.md,
+  },
+  shareButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+  },
+  shareButtonText: {
+    color: Colors.text.primary,
+    fontWeight: Typography.weight.semibold,
+    marginLeft: Spacing.sm,
+    fontSize: Typography.size.md,
+  },
+  downloadButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-  },
-  actionButtonText: {
-    color: '#3B82F6',
-    fontWeight: '600',
-    marginLeft: 8,
-    fontSize: 15,
-  },
-  downloadButton: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.surface.default,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
   },
   downloadButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    marginLeft: 8,
-    fontSize: 15,
+    color: Colors.text.secondary,
+    fontWeight: Typography.weight.medium,
+    marginLeft: Spacing.sm,
+    fontSize: Typography.size.md,
   },
 });

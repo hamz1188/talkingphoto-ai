@@ -10,10 +10,12 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import OnboardingSlide from '@/components/OnboardingSlide';
 import { storage, StorageKeys } from '@/lib/storage';
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 
 const { width } = Dimensions.get('window');
 
@@ -24,7 +26,7 @@ const slides = [
     title: 'Make Any Photo Talk',
     description:
       'Upload any photo and watch it come to life with realistic lip-sync animation.',
-    iconColor: '#8B5CF6',
+    iconColor: Colors.primary.default,
   },
   {
     id: '2',
@@ -32,7 +34,7 @@ const slides = [
     title: 'AI Writes the Script',
     description:
       'Our AI analyzes your photo and creates a funny, personalized script in seconds.',
-    iconColor: '#EC4899',
+    iconColor: Colors.accent.default,
   },
   {
     id: '3',
@@ -40,7 +42,7 @@ const slides = [
     title: 'Choose Your Voice',
     description:
       'Pick from multiple realistic voices to bring your talking photo to life.',
-    iconColor: '#10B981',
+    iconColor: Colors.success.default,
   },
   {
     id: '4',
@@ -48,7 +50,7 @@ const slides = [
     title: 'Share with Friends',
     description:
       'Download and share your creation on TikTok, Instagram, or anywhere you like!',
-    iconColor: '#F59E0B',
+    iconColor: Colors.premium.default,
   },
 ];
 
@@ -144,10 +146,26 @@ export default function OnboardingScreen() {
 
       {/* Bottom button */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
-        <Pressable onPress={handleNext} style={styles.nextButton}>
-          <Text style={styles.nextButtonText}>
-            {isLastSlide ? 'Get Started' : 'Next'}
-          </Text>
+        <Pressable
+          onPress={handleNext}
+          style={({ pressed }) => [
+            styles.nextButton,
+            pressed && styles.nextButtonPressed,
+          ]}
+        >
+          <LinearGradient
+            colors={isLastSlide
+              ? [Colors.accent.default, Colors.accent.dark]
+              : [Colors.primary.default, Colors.primary.dark]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.nextButtonGradient}
+          >
+            <Text style={styles.nextButtonText}>
+              {isLastSlide ? 'Get Started' : 'Next'}
+            </Text>
+          </LinearGradient>
         </Pressable>
       </View>
     </View>
@@ -157,7 +175,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
   },
   flatList: {
     flex: 1,
@@ -166,49 +184,53 @@ const styles = StyleSheet.create({
     height: 50,
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.lg,
     zIndex: 10,
   },
   skipButton: {
-    padding: 10,
-    cursor: 'pointer' as any,
+    padding: Spacing.sm,
   },
   skipText: {
-    fontSize: 16,
-    color: '#6B7280',
-    fontWeight: '500',
+    fontSize: Typography.size.md,
+    color: Colors.text.muted,
+    fontWeight: Typography.weight.medium,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: Spacing.lg,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#E5E7EB',
-    marginHorizontal: 4,
+    backgroundColor: Colors.surface.elevated,
+    marginHorizontal: Spacing.xs,
   },
   activeDot: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: Colors.primary.default,
     width: 24,
   },
   footer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.lg,
     zIndex: 10,
   },
   nextButton: {
-    backgroundColor: '#8B5CF6',
-    paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.glow,
+  },
+  nextButtonGradient: {
+    paddingVertical: Spacing.md + 2,
     alignItems: 'center',
-    cursor: 'pointer' as any,
+  },
+  nextButtonPressed: {
+    transform: [{ scale: 0.98 }],
   },
   nextButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+    color: Colors.text.primary,
+    fontSize: Typography.size.lg,
+    fontWeight: Typography.weight.semibold,
   },
 });

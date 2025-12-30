@@ -9,6 +9,8 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { storage, StorageKeys } from '@/lib/storage';
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
+import { Paywall } from '@/components/Paywall';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -81,17 +83,33 @@ function RootLayoutNav({ showOnboarding }: { showOnboarding: boolean }) {
   }, [showOnboarding]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="onboarding"
-          options={{
-            headerShown: false,
-            gestureEnabled: false,
-          }}
-        />
-      </Stack>
-    </ThemeProvider>
+    <SubscriptionProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="onboarding"
+            options={{
+              headerShown: false,
+              gestureEnabled: false,
+            }}
+          />
+        </Stack>
+        <PaywallWrapper />
+      </ThemeProvider>
+    </SubscriptionProvider>
+  );
+}
+
+// Separate component to use the subscription context
+function PaywallWrapper() {
+  const { isPaywallVisible, hidePaywall } =
+    require('@/contexts/SubscriptionContext').useSubscriptionContext();
+
+  return (
+    <Paywall
+      visible={isPaywallVisible}
+      onClose={hidePaywall}
+    />
   );
 }

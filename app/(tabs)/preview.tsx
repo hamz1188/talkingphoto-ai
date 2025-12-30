@@ -1,11 +1,13 @@
-import { View, Text, Pressable, Platform, StyleSheet, Linking } from 'react-native';
+import { View, Text, Pressable, Platform, StyleSheet, Linking, Share } from 'react-native';
 import { useEffect } from 'react';
 import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { FontAwesome } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useCreationStore } from '@/stores/creationStore';
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 
 export default function PreviewScreen() {
   const { videoUrl, reset } = useCreationStore();
@@ -22,6 +24,23 @@ export default function PreviewScreen() {
       router.replace('/');
     }
   }, [videoUrl]);
+
+  const handleShare = async () => {
+    if (!videoUrl) return;
+
+    analytics.track(AnalyticsEvents.VIDEO_SHARED, {
+      platform: Platform.OS,
+    });
+
+    try {
+      await Share.share({
+        message: 'Check out my talking photo! Made with TalkingPhoto AI',
+        url: videoUrl,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
 
   const handleDownload = async () => {
     if (!videoUrl) return;
@@ -61,27 +80,69 @@ export default function PreviewScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.videoSection}>
+        <View style={styles.successBadge}>
+          <FontAwesome name="check-circle" size={16} color={Colors.success.default} />
+          <Text style={styles.successText}>Video Ready!</Text>
+        </View>
         <Text style={styles.title}>Your Talking Photo</Text>
-        <View style={styles.videoWrapper}>
-          <VideoView
-            style={styles.video}
-            player={player}
-            allowsFullscreen
-            allowsPictureInPicture
-            nativeControls
-          />
+        <View style={styles.videoContainer}>
+          <View style={styles.videoGlow} />
+          <View style={styles.videoWrapper}>
+            <VideoView
+              style={styles.video}
+              player={player}
+              allowsFullscreen
+              allowsPictureInPicture
+              nativeControls
+            />
+          </View>
         </View>
       </View>
 
       <View style={styles.actionsSection}>
-        <Pressable onPress={handleDownload} style={styles.downloadButton}>
-          <FontAwesome name="download" size={18} color="white" />
-          <Text style={styles.buttonText}>Download Video</Text>
+        {/* Primary action - Share */}
+        <Pressable
+          onPress={handleShare}
+          style={({ pressed }) => [
+            styles.shareButton,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <LinearGradient
+            colors={[Colors.accent.default, Colors.accent.dark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.shareButtonGradient}
+          >
+            <FontAwesome name="share-alt" size={18} color={Colors.text.primary} />
+            <Text style={styles.shareButtonText}>Share Video</Text>
+          </LinearGradient>
         </Pressable>
 
-        <Pressable onPress={handleCreateAnother} style={styles.createAnotherButton}>
-          <Text style={styles.createAnotherText}>Create Another</Text>
-        </Pressable>
+        {/* Secondary actions row */}
+        <View style={styles.secondaryActions}>
+          <Pressable
+            onPress={handleDownload}
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              pressed && styles.buttonPressed,
+            ]}
+          >
+            <FontAwesome name="download" size={16} color={Colors.success.default} />
+            <Text style={styles.secondaryButtonText}>Download</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={handleCreateAnother}
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              pressed && styles.buttonPressed,
+            ]}
+          >
+            <FontAwesome name="plus" size={16} color={Colors.primary.default} />
+            <Text style={styles.secondaryButtonText}>Create New</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -90,75 +151,121 @@ export default function PreviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadingText: {
-    color: '#6B7280',
+    color: Colors.text.muted,
+    fontSize: Typography.size.md,
   },
   videoSection: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: Spacing.lg,
+  },
+  successBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.success.subtle,
+    borderRadius: BorderRadius.full,
+    marginBottom: Spacing.sm,
+  },
+  successText: {
+    color: Colors.success.light,
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.medium,
+    marginLeft: Spacing.xs,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 16,
+    fontSize: Typography.size.xxl,
+    fontWeight: Typography.weight.bold,
+    color: Colors.text.primary,
+    marginBottom: Spacing.lg,
+  },
+  videoContainer: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 350,
+  },
+  videoGlow: {
+    position: 'absolute',
+    top: -15,
+    left: -15,
+    right: -15,
+    bottom: -15,
+    borderRadius: BorderRadius.xl + 15,
+    backgroundColor: Colors.accent.glow,
   },
   videoWrapper: {
     width: '100%',
-    maxWidth: 400,
     aspectRatio: 1,
-    borderRadius: 16,
+    borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    backgroundColor: '#000000',
+    backgroundColor: Colors.background.tertiary,
+    borderWidth: 2,
+    borderColor: Colors.border.default,
   },
   video: {
     width: '100%',
     height: '100%',
   },
   actionsSection: {
-    padding: 24,
-    paddingBottom: 40,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
     alignItems: 'center',
   },
-  downloadButton: {
+  shareButton: {
     width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#22C55E',
-    paddingVertical: 16,
-    borderRadius: 12,
+    maxWidth: 350,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.glow,
+  },
+  shareButtonGradient: {
+    paddingVertical: Spacing.md + 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: '600',
-    marginLeft: 8,
-    fontSize: 16,
+  shareButtonText: {
+    color: Colors.text.primary,
+    fontWeight: Typography.weight.semibold,
+    marginLeft: Spacing.sm,
+    fontSize: Typography.size.lg,
   },
-  createAnotherButton: {
+  buttonPressed: {
+    transform: [{ scale: 0.97 }],
+  },
+  secondaryActions: {
+    flexDirection: 'row',
+    marginTop: Spacing.md,
+    gap: Spacing.md,
     width: '100%',
-    maxWidth: 400,
-    marginTop: 16,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    alignItems: 'center',
+    maxWidth: 350,
   },
-  createAnotherText: {
-    color: '#374151',
-    fontWeight: '600',
-    fontSize: 16,
+  secondaryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.surface.default,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+  },
+  secondaryButtonText: {
+    color: Colors.text.secondary,
+    fontWeight: Typography.weight.medium,
+    marginLeft: Spacing.sm,
+    fontSize: Typography.size.md,
   },
 });

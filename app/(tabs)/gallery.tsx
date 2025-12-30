@@ -11,8 +11,10 @@ import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useGalleryStore } from '@/stores/galleryStore';
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 import type { GalleryVideo } from '@/types';
 
 const { width } = Dimensions.get('window');
@@ -60,7 +62,10 @@ export default function GalleryScreen() {
 
   const renderVideoCard = ({ item }: { item: GalleryVideo }) => (
     <Pressable
-      style={styles.card}
+      style={({ pressed }) => [
+        styles.card,
+        pressed && styles.cardPressed,
+      ]}
       onPress={() => handleVideoPress(item)}
       onLongPress={() => handleDeleteVideo(item)}
     >
@@ -73,11 +78,17 @@ export default function GalleryScreen() {
           />
         ) : (
           <View style={styles.placeholderThumbnail}>
-            <FontAwesome name="play-circle" size={40} color="#9CA3AF" />
+            <FontAwesome name="play-circle" size={40} color={Colors.text.muted} />
           </View>
         )}
+        <LinearGradient
+          colors={['transparent', 'rgba(0, 0, 0, 0.7)']}
+          style={styles.thumbnailGradient}
+        />
         <View style={styles.playOverlay}>
-          <FontAwesome name="play" size={20} color="white" />
+          <View style={styles.playButton}>
+            <FontAwesome name="play" size={16} color={Colors.text.primary} />
+          </View>
         </View>
       </View>
       <View style={styles.cardContent}>
@@ -100,14 +111,29 @@ export default function GalleryScreen() {
   if (videos.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <FontAwesome name="film" size={64} color="#D1D5DB" />
+        <View style={styles.emptyIconContainer}>
+          <FontAwesome name="film" size={48} color={Colors.primary.default} />
+        </View>
         <Text style={styles.emptyTitle}>No Videos Yet</Text>
         <Text style={styles.emptySubtitle}>
           Create your first talking photo and it will appear here!
         </Text>
-        <Pressable style={styles.createButton} onPress={() => router.push('/')}>
-          <FontAwesome name="plus" size={16} color="white" />
-          <Text style={styles.createButtonText}>Create Video</Text>
+        <Pressable
+          style={({ pressed }) => [
+            styles.createButton,
+            pressed && styles.createButtonPressed,
+          ]}
+          onPress={() => router.push('/')}
+        >
+          <LinearGradient
+            colors={[Colors.primary.default, Colors.primary.dark]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.createButtonGradient}
+          >
+            <FontAwesome name="plus" size={16} color={Colors.text.primary} />
+            <Text style={styles.createButtonText}>Create Video</Text>
+          </LinearGradient>
         </Pressable>
       </View>
     );
@@ -124,6 +150,7 @@ export default function GalleryScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
+      <Text style={styles.hintText}>Long press to delete</Text>
     </View>
   );
 }
@@ -131,59 +158,80 @@ export default function GalleryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: Spacing.lg,
   },
   loadingText: {
-    color: '#6B7280',
-    fontSize: 16,
+    color: Colors.text.muted,
+    fontSize: Typography.size.md,
+  },
+  emptyIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.primary.subtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
-    marginTop: 16,
+    fontSize: Typography.size.xl,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.text.primary,
   },
   emptySubtitle: {
-    color: '#6B7280',
+    color: Colors.text.secondary,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: Spacing.sm,
     maxWidth: 280,
+    lineHeight: 22,
   },
   createButton: {
+    marginTop: Spacing.xl,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.md,
+  },
+  createButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginTop: 24,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  createButtonPressed: {
+    transform: [{ scale: 0.95 }],
   },
   createButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    marginLeft: 8,
+    color: Colors.text.primary,
+    fontWeight: Typography.weight.semibold,
+    marginLeft: Spacing.sm,
+    fontSize: Typography.size.md,
   },
   listContent: {
-    padding: 16,
+    padding: Spacing.md,
+    paddingBottom: Spacing.xxxl,
   },
   row: {
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
   card: {
     width: CARD_WIDTH,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    backgroundColor: Colors.surface.default,
+    borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.border.default,
+  },
+  cardPressed: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.9,
   },
   thumbnailContainer: {
     width: '100%',
@@ -194,10 +242,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  thumbnailGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '50%',
+  },
   placeholderThumbnail: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#E5E7EB',
+    backgroundColor: Colors.surface.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -207,21 +262,38 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  playButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.primary.default,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.md,
+  },
   cardContent: {
-    padding: 10,
+    padding: Spacing.sm + 2,
   },
   scriptPreview: {
-    fontSize: 13,
-    color: '#374151',
+    fontSize: Typography.size.sm,
+    color: Colors.text.secondary,
     lineHeight: 18,
   },
   dateText: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    marginTop: 6,
+    fontSize: Typography.size.xs,
+    color: Colors.text.muted,
+    marginTop: Spacing.xs,
+  },
+  hintText: {
+    position: 'absolute',
+    bottom: Spacing.md,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: Colors.text.muted,
+    fontSize: Typography.size.xs,
   },
 });

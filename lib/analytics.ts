@@ -69,12 +69,15 @@ export const AnalyticsEvents = {
   VIDEO_SHARED: 'video_shared',
   CREATE_ANOTHER_TAPPED: 'create_another_tapped',
 
-  // Paywall (for future use)
+  // Paywall
   PAYWALL_SHOWN: 'paywall_shown',
   PAYWALL_DISMISSED: 'paywall_dismissed',
+  PAYWALL_PURCHASE_TAPPED: 'paywall_purchase_tapped',
+  PAYWALL_RESTORE_TAPPED: 'paywall_restore_tapped',
   SUBSCRIPTION_STARTED: 'subscription_started',
   SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
   SUBSCRIPTION_RESTORED: 'subscription_restored',
+  FREE_LIMIT_REACHED: 'free_limit_reached',
 
   // Errors
   ERROR_OCCURRED: 'error_occurred',

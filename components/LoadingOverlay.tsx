@@ -1,4 +1,9 @@
-import { View, Text, ActivityIndicator, Modal, StyleSheet } from 'react-native';
+import { View, Text, Modal, StyleSheet, Animated } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { FontAwesome } from '@expo/vector-icons';
+
+import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Theme';
 
 interface LoadingOverlayProps {
   visible: boolean;
@@ -6,24 +11,102 @@ interface LoadingOverlayProps {
   progress?: number; // 0-100
 }
 
+const FUN_MESSAGES = [
+  'Teaching your photo to talk...',
+  'Adding some personality...',
+  'Syncing the lips...',
+  'Making magic happen...',
+  'Almost ready to wow you...',
+  'Sprinkling AI dust...',
+  'Training those vocal cords...',
+  'Fine-tuning the expression...',
+];
+
 export function LoadingOverlay({
   visible,
   message = 'Processing...',
   progress,
 }: LoadingOverlayProps) {
   const showProgress = progress !== undefined && progress > 0;
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [funMessageIndex, setFunMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (visible) {
+      // Spin animation for the icon
+      Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      ).start();
+
+      // Pulse animation for the glow
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.2,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+
+      // Rotate fun messages
+      const messageInterval = setInterval(() => {
+        setFunMessageIndex((prev) => (prev + 1) % FUN_MESSAGES.length);
+      }, 3000);
+
+      return () => {
+        clearInterval(messageInterval);
+        spinAnim.stopAnimation();
+        pulseAnim.stopAnimation();
+      };
+    }
+  }, [visible]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const displayMessage = showProgress ? message : FUN_MESSAGES[funMessageIndex];
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <ActivityIndicator size="large" color="#3B82F6" />
-          <Text style={styles.message}>{message}</Text>
+          {/* Animated glow behind icon */}
+          <Animated.View
+            style={[
+              styles.iconGlow,
+              { transform: [{ scale: pulseAnim }] },
+            ]}
+          />
+
+          {/* Spinning magic icon */}
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
+            <View style={styles.iconContainer}>
+              <FontAwesome name="magic" size={32} color={Colors.primary.default} />
+            </View>
+          </Animated.View>
+
+          <Text style={styles.message}>{displayMessage}</Text>
 
           {showProgress && (
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
-                <View
+                <LinearGradient
+                  colors={[Colors.primary.default, Colors.accent.default]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
                   style={[styles.progressFill, { width: `${progress}%` }]}
                 />
               </View>
@@ -32,11 +115,15 @@ export function LoadingOverlay({
           )}
 
           <Text style={styles.hint}>
-            {showProgress && progress < 50
-              ? 'GPU is warming up...'
-              : showProgress && progress < 100
+            {showProgress && progress < 30
+              ? 'Warming up the AI...'
+              : showProgress && progress < 60
+              ? 'Creating the magic...'
+              : showProgress && progress < 90
               ? 'Almost there...'
-              : 'This may take a few minutes'}
+              : showProgress
+              ? 'Finishing touches...'
+              : 'This usually takes 1-2 minutes'}
           </Text>
         </View>
       </View>
@@ -47,52 +134,70 @@ export function LoadingOverlay({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Colors.overlay.heavy,
     alignItems: 'center',
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 32,
+    backgroundColor: Colors.surface.elevated,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
     alignItems: 'center',
-    marginHorizontal: 32,
-    minWidth: 280,
+    marginHorizontal: Spacing.xl,
+    minWidth: 300,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+  },
+  iconGlow: {
+    position: 'absolute',
+    top: Spacing.xl,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.primary.glow,
+  },
+  iconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primary.subtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
   },
   message: {
-    color: '#111827',
-    fontSize: 18,
-    fontWeight: '500',
-    marginTop: 16,
+    color: Colors.text.primary,
+    fontSize: Typography.size.lg,
+    fontWeight: Typography.weight.semibold,
+    marginTop: Spacing.sm,
     textAlign: 'center',
   },
   progressContainer: {
     width: '100%',
-    marginTop: 16,
+    marginTop: Spacing.lg,
     alignItems: 'center',
   },
   progressBar: {
     width: '100%',
     height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
+    backgroundColor: Colors.surface.default,
+    borderRadius: BorderRadius.full,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3B82F6',
-    borderRadius: 4,
+    borderRadius: BorderRadius.full,
   },
   progressText: {
-    color: '#3B82F6',
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 8,
+    color: Colors.primary.light,
+    fontSize: Typography.size.lg,
+    fontWeight: Typography.weight.bold,
+    marginTop: Spacing.sm,
   },
   hint: {
-    color: '#6B7280',
-    fontSize: 14,
-    marginTop: 12,
+    color: Colors.text.muted,
+    fontSize: Typography.size.sm,
+    marginTop: Spacing.md,
     textAlign: 'center',
   },
 });
