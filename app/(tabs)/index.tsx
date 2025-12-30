@@ -9,6 +9,7 @@ import { ScriptInput } from '@/components/ScriptInput';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { useCreationStore } from '@/stores/creationStore';
 import { generateScript, generateVoice, generateVideo } from '@/services/api';
+import { analytics, AnalyticsEvents } from '@/lib/analytics';
 
 export default function CreateScreen() {
   const {
@@ -39,8 +40,15 @@ export default function CreateScreen() {
     try {
       const generatedScript = await generateScript(imageBase64);
       setScript(generatedScript);
+      analytics.track(AnalyticsEvents.SCRIPT_GENERATED, {
+        scriptLength: generatedScript.length,
+      });
     } catch (error) {
       Alert.alert('Error', 'Failed to generate script. Please try again.');
+      analytics.track(AnalyticsEvents.API_ERROR, {
+        action: 'generate_script',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       console.error(error);
     } finally {
       setIsGeneratingScript(false);
@@ -57,6 +65,11 @@ export default function CreateScreen() {
       return;
     }
 
+    analytics.track(AnalyticsEvents.VIDEO_GENERATION_STARTED, {
+      scriptLength: script.length,
+      voiceId: selectedVoiceId,
+    });
+
     try {
       // Step 1: Generate voice
       setStatus('generating-voice');
@@ -71,12 +84,20 @@ export default function CreateScreen() {
       setVideoUrl(videoUrl);
 
       setStatus('complete');
+      analytics.track(AnalyticsEvents.VIDEO_GENERATION_COMPLETED, {
+        scriptLength: script.length,
+        voiceId: selectedVoiceId,
+      });
       router.push('/preview');
     } catch (error) {
       console.error('Error creating video:', error);
       const message =
         error instanceof Error ? error.message : 'Failed to create video';
       setError(message);
+      analytics.track(AnalyticsEvents.VIDEO_GENERATION_FAILED, {
+        error: message,
+        voiceId: selectedVoiceId,
+      });
       Alert.alert('Error', message);
       setStatus('idle');
     }

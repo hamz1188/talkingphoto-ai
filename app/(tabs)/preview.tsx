@@ -5,6 +5,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { FontAwesome } from '@expo/vector-icons';
 
 import { useCreationStore } from '@/stores/creationStore';
+import { analytics, AnalyticsEvents } from '@/lib/analytics';
 
 export default function PreviewScreen() {
   const { videoUrl, reset } = useCreationStore();
@@ -25,6 +26,10 @@ export default function PreviewScreen() {
   const handleDownload = async () => {
     if (!videoUrl) return;
 
+    analytics.track(AnalyticsEvents.VIDEO_DOWNLOADED, {
+      platform: Platform.OS,
+    });
+
     if (Platform.OS === 'web') {
       // On web, open video in new tab or trigger download
       const link = document.createElement('a');
@@ -40,6 +45,7 @@ export default function PreviewScreen() {
   };
 
   const handleCreateAnother = () => {
+    analytics.track(AnalyticsEvents.CREATE_ANOTHER_TAPPED);
     reset();
     router.replace('/');
   };

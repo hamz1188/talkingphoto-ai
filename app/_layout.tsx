@@ -1,12 +1,14 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { storage, StorageKeys } from '@/lib/storage';
+import { analytics, AnalyticsEvents } from '@/lib/analytics';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -26,6 +28,25 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
+  const [isReady, setIsReady] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Initialize analytics and check onboarding state
+  useEffect(() => {
+    const init = async () => {
+      // Initialize analytics
+      await analytics.init();
+
+      // Check if onboarding has been completed
+      const onboardingCompleted = await storage.get<boolean>(
+        StorageKeys.ONBOARDING_COMPLETED
+      );
+      setShowOnboarding(!onboardingCompleted);
+      setIsReady(true);
+    };
+
+    init();
+  }, []);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -33,25 +54,43 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded && isReady) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, isReady]);
 
-  if (!loaded) {
+  if (!loaded || !isReady) {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return <RootLayoutNav showOnboarding={showOnboarding} />;
 }
 
-function RootLayoutNav() {
+function RootLayoutNav({ showOnboarding }: { showOnboarding: boolean }) {
   const colorScheme = useColorScheme();
+
+  // Handle initial navigation based on onboarding state
+  useEffect(() => {
+    if (showOnboarding) {
+      // Small delay to ensure navigation is ready
+      const timeout = setTimeout(() => {
+        router.replace('/onboarding');
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [showOnboarding]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );
