@@ -204,6 +204,39 @@ export const Shadows = {
   },
 } as const;
 
+// Layout constants for responsive design
+export const Layout = {
+  // Maximum content width (prevents content from being too wide on tablets)
+  maxContentWidth: 500,
+
+  // Standard horizontal padding
+  horizontalPadding: Spacing.lg,
+
+  // Screen breakpoints
+  breakpoints: {
+    small: 375,   // iPhone SE, 8
+    medium: 390,  // iPhone 14, 15
+    large: 428,   // iPhone Plus, Pro Max
+    xlarge: 768,  // iPad
+  },
+
+  // Gallery grid
+  galleryColumns: 2,
+  galleryGap: Spacing.md,
+
+  // Common component sizes (base values, scale with useResponsive)
+  iconContainerSize: 72,
+  buttonHeight: 48,
+  inputHeight: 48,
+
+  // Glow effect multipliers (relative to content width)
+  glowMultiplier: {
+    large: 0.8,
+    medium: 0.5,
+    small: 0.3,
+  },
+} as const;
+
 // Animation durations
 export const Animation = {
   fast: 150,

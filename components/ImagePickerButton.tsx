@@ -1,11 +1,10 @@
-import { View, Text, Pressable, Image, Platform, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, Image, Platform, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useResponsive } from '@/hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
-
-const HORIZONTAL_PADDING = Spacing.lg * 2; // Buffer on each side
 
 interface ImagePickerButtonProps {
   imageUri: string | null;
@@ -16,8 +15,8 @@ export function ImagePickerButton({
   imageUri,
   onImageSelected,
 }: ImagePickerButtonProps) {
-  const { width: screenWidth } = useWindowDimensions();
-  const imageSize = screenWidth - HORIZONTAL_PADDING;
+  const { imageSize, iconContainerSize, scale } = useResponsive();
+  const iconSize = scale(32);
 
   const pickImage = async () => {
     try {
@@ -78,8 +77,12 @@ export function ImagePickerButton({
       pressed && styles.placeholderPressed,
     ]}>
       <View style={styles.placeholderInner}>
-        <View style={styles.iconContainer}>
-          <FontAwesome name="camera" size={32} color={Colors.primary.default} />
+        <View style={[styles.iconContainer, {
+          width: iconContainerSize,
+          height: iconContainerSize,
+          borderRadius: iconContainerSize / 2,
+        }]}>
+          <FontAwesome name="camera" size={iconSize} color={Colors.primary.default} />
         </View>
         <Text style={styles.addText}>Add Photo</Text>
         <Text style={styles.hintText}>Tap to select from gallery</Text>
@@ -146,9 +149,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.border.default,
   },
   iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
     backgroundColor: Colors.primary.subtle,
     alignItems: 'center',
     justifyContent: 'center',

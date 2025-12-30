@@ -6,8 +6,8 @@ import Purchases, {
   LOG_LEVEL,
 } from 'react-native-purchases';
 
-// RevenueCat API Keys - Replace with your actual keys from RevenueCat dashboard
-const REVENUECAT_API_KEY_IOS = 'appl_YOUR_REVENUECAT_IOS_KEY';
+// RevenueCat API Keys
+const REVENUECAT_API_KEY_IOS = 'test_rrhHIwRMoerUHZRuJAatuCDyjry';
 const REVENUECAT_API_KEY_ANDROID = 'goog_YOUR_REVENUECAT_ANDROID_KEY';
 
 // Entitlement ID - This should match what you set up in RevenueCat

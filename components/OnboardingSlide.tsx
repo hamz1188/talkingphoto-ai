@@ -1,9 +1,8 @@
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 
+import { useResponsive } from '@/hooks/useResponsive';
 import { Colors, Spacing, Typography } from '@/constants/Theme';
-
-const { width } = Dimensions.get('window');
 
 interface OnboardingSlideProps {
   icon: keyof typeof FontAwesome.glyphMap;
@@ -18,28 +17,48 @@ export default function OnboardingSlide({
   description,
   iconColor = Colors.primary.default,
 }: OnboardingSlideProps) {
+  const { screenWidth, glowSizeLarge, glowSizeMedium, contentWidth, scale } = useResponsive();
+
   // Create a subtle glow color from the icon color
   const glowColor = `${iconColor}30`;
   const subtleColor = `${iconColor}15`;
 
-  return (
-    <View style={styles.slide}>
-      {/* Background glow */}
-      <View style={[styles.glowOuter, { backgroundColor: subtleColor }]} />
-      <View style={[styles.glowInner, { backgroundColor: glowColor }]} />
+  // Dynamic sizes
+  const iconContainerSize = scale(130);
+  const iconSize = scale(56);
 
-      <View style={[styles.iconContainer, { borderColor: iconColor }]}>
-        <FontAwesome name={icon} size={56} color={iconColor} />
+  return (
+    <View style={[styles.slide, { width: screenWidth }]}>
+      {/* Background glow */}
+      <View style={[styles.glowOuter, {
+        backgroundColor: subtleColor,
+        width: glowSizeLarge,
+        height: glowSizeLarge,
+        borderRadius: glowSizeLarge / 2,
+      }]} />
+      <View style={[styles.glowInner, {
+        backgroundColor: glowColor,
+        width: glowSizeMedium,
+        height: glowSizeMedium,
+        borderRadius: glowSizeMedium / 2,
+      }]} />
+
+      <View style={[styles.iconContainer, {
+        borderColor: iconColor,
+        width: iconContainerSize,
+        height: iconContainerSize,
+        borderRadius: iconContainerSize / 2,
+      }]}>
+        <FontAwesome name={icon} size={iconSize} color={iconColor} />
       </View>
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.description}>{description}</Text>
+      <Text style={[styles.description, { maxWidth: contentWidth }]}>{description}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   slide: {
-    width,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -48,22 +67,13 @@ const styles = StyleSheet.create({
   },
   glowOuter: {
     position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
     top: '20%',
   },
   glowInner: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
     top: '25%',
   },
   iconContainer: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.xl,
@@ -82,6 +92,5 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: 300,
   },
 });

@@ -6,11 +6,13 @@ import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useCreationStore } from '@/stores/creationStore';
+import { useResponsive } from '@/hooks/useResponsive';
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 
 export default function PreviewScreen() {
   const { videoUrl, reset } = useCreationStore();
+  const { contentWidth } = useResponsive();
 
   const player = useVideoPlayer(videoUrl || '', (player) => {
     player.loop = true;
@@ -85,7 +87,7 @@ export default function PreviewScreen() {
           <Text style={styles.successText}>Video Ready!</Text>
         </View>
         <Text style={styles.title}>Your Talking Photo</Text>
-        <View style={styles.videoContainer}>
+        <View style={[styles.videoContainer, { width: contentWidth }]}>
           <View style={styles.videoGlow} />
           <View style={styles.videoWrapper}>
             <VideoView
@@ -105,6 +107,7 @@ export default function PreviewScreen() {
           onPress={handleShare}
           style={({ pressed }) => [
             styles.shareButton,
+            { width: contentWidth },
             pressed && styles.buttonPressed,
           ]}
         >
@@ -120,7 +123,7 @@ export default function PreviewScreen() {
         </Pressable>
 
         {/* Secondary actions row */}
-        <View style={styles.secondaryActions}>
+        <View style={[styles.secondaryActions, { width: contentWidth }]}>
           <Pressable
             onPress={handleDownload}
             style={({ pressed }) => [
@@ -192,8 +195,6 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     position: 'relative',
-    width: '100%',
-    maxWidth: 350,
   },
   videoGlow: {
     position: 'absolute',
@@ -223,8 +224,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   shareButton: {
-    width: '100%',
-    maxWidth: 350,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     ...Shadows.glow,
@@ -248,8 +247,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: Spacing.md,
     gap: Spacing.md,
-    width: '100%',
-    maxWidth: 350,
   },
   secondaryButton: {
     flex: 1,

@@ -12,6 +12,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useResponsive } from '@/hooks/useResponsive';
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 
@@ -20,6 +21,7 @@ export default function VideoPlayerScreen() {
     videoUrl: string;
     script: string;
   }>();
+  const { contentWidth } = useResponsive();
 
   const player = useVideoPlayer(videoUrl || '', (player) => {
     player.loop = true;
@@ -94,7 +96,7 @@ export default function VideoPlayerScreen() {
       </View>
 
       <View style={styles.videoSection}>
-        <View style={styles.videoContainer}>
+        <View style={[styles.videoContainer, { width: contentWidth }]}>
           <View style={styles.videoGlow} />
           <View style={styles.videoWrapper}>
             <VideoView
@@ -209,8 +211,6 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     position: 'relative',
-    width: '100%',
-    maxWidth: 350,
   },
   videoGlow: {
     position: 'absolute',

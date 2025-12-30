@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from '@expo/vector-icons';
 
+import { useResponsive } from '@/hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/Theme';
 
 interface LoadingOverlayProps {
@@ -27,10 +28,16 @@ export function LoadingOverlay({
   message = 'Processing...',
   progress,
 }: LoadingOverlayProps) {
+  const { contentWidth, iconContainerSize, glowSizeSmall, scale } = useResponsive();
   const showProgress = progress !== undefined && progress > 0;
   const spinAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [funMessageIndex, setFunMessageIndex] = useState(0);
+
+  // Dynamic sizes
+  const cardMinWidth = Math.min(contentWidth, 320);
+  const iconGlowSize = scale(100);
+  const iconSize = scale(32);
 
   useEffect(() => {
     if (visible) {
@@ -82,19 +89,28 @@ export function LoadingOverlay({
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
-        <View style={styles.card}>
+        <View style={[styles.card, { minWidth: cardMinWidth }]}>
           {/* Animated glow behind icon */}
           <Animated.View
             style={[
               styles.iconGlow,
-              { transform: [{ scale: pulseAnim }] },
+              {
+                width: iconGlowSize,
+                height: iconGlowSize,
+                borderRadius: iconGlowSize / 2,
+                transform: [{ scale: pulseAnim }],
+              },
             ]}
           />
 
           {/* Spinning magic icon */}
           <Animated.View style={{ transform: [{ rotate: spin }] }}>
-            <View style={styles.iconContainer}>
-              <FontAwesome name="magic" size={32} color={Colors.primary.default} />
+            <View style={[styles.iconContainer, {
+              width: iconContainerSize,
+              height: iconContainerSize,
+              borderRadius: iconContainerSize / 2,
+            }]}>
+              <FontAwesome name="magic" size={iconSize} color={Colors.primary.default} />
             </View>
           </Animated.View>
 
@@ -144,22 +160,15 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     alignItems: 'center',
     marginHorizontal: Spacing.xl,
-    minWidth: 300,
     borderWidth: 1,
     borderColor: Colors.border.default,
   },
   iconGlow: {
     position: 'absolute',
     top: Spacing.xl,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
     backgroundColor: Colors.primary.glow,
   },
   iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
     backgroundColor: Colors.primary.subtle,
     alignItems: 'center',
     justifyContent: 'center',

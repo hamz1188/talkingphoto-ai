@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { PurchasesPackage } from 'react-native-purchases';
 
 import { useSubscriptionContext } from '@/contexts/SubscriptionContext';
+import { useResponsive } from '@/hooks/useResponsive';
 import { analytics, AnalyticsEvents } from '@/lib/analytics';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 
@@ -32,8 +33,14 @@ interface PaywallProps {
 
 export function Paywall({ visible, onClose }: PaywallProps) {
   const { offerings, purchase, restore, remainingFreeVideos } = useSubscriptionContext();
+  const { scale, contentWidth } = useResponsive();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<'weekly' | 'monthly'>('weekly');
+
+  // Dynamic sizes
+  const iconGlowSize = scale(120);
+  const iconContainerSize = scale(80);
+  const heroIconSize = scale(36);
 
   const weeklyPackage = offerings?.availablePackages.find(
     (pkg) => pkg.packageType === 'WEEKLY'
@@ -112,9 +119,17 @@ export function Paywall({ visible, onClose }: PaywallProps) {
         >
           {/* Hero Section */}
           <View style={styles.heroSection}>
-            <View style={styles.iconGlow} />
-            <View style={styles.iconContainer}>
-              <FontAwesome name="star" size={36} color={Colors.premium.default} />
+            <View style={[styles.iconGlow, {
+              width: iconGlowSize,
+              height: iconGlowSize,
+              borderRadius: iconGlowSize / 2,
+            }]} />
+            <View style={[styles.iconContainer, {
+              width: iconContainerSize,
+              height: iconContainerSize,
+              borderRadius: iconContainerSize / 2,
+            }]}>
+              <FontAwesome name="star" size={heroIconSize} color={Colors.premium.default} />
             </View>
             <Text style={styles.heroTitle}>Unlock Unlimited Creations</Text>
             <Text style={styles.heroSubtitle}>
@@ -303,15 +318,9 @@ const styles = StyleSheet.create({
   iconGlow: {
     position: 'absolute',
     top: -10,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
     backgroundColor: Colors.premium.glow,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
     backgroundColor: Colors.premium.subtle,
     alignItems: 'center',
     justifyContent: 'center',

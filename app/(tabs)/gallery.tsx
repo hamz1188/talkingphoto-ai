@@ -5,7 +5,6 @@ import {
   Pressable,
   Alert,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
@@ -14,14 +13,13 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useGalleryStore } from '@/stores/galleryStore';
+import { useResponsive } from '@/hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@/constants/Theme';
 import type { GalleryVideo } from '@/types';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 48 - 12) / 2; // 2 columns with padding and gap
-
 export default function GalleryScreen() {
   const { videos, loadGallery, removeVideo } = useGalleryStore();
+  const { cardWidth, cardGap, scale } = useResponsive();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -64,6 +62,7 @@ export default function GalleryScreen() {
     <Pressable
       style={({ pressed }) => [
         styles.card,
+        { width: cardWidth },
         pressed && styles.cardPressed,
       ]}
       onPress={() => handleVideoPress(item)}
@@ -146,7 +145,7 @@ export default function GalleryScreen() {
         renderItem={renderVideoCard}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        columnWrapperStyle={styles.row}
+        columnWrapperStyle={[styles.row, { gap: cardGap }]}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
@@ -222,7 +221,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   card: {
-    width: CARD_WIDTH,
     backgroundColor: Colors.surface.default,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
